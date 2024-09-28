@@ -6,7 +6,8 @@
   "author": "Alireza Dehghan Ashkezari",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "dev:prod": "set NODE_ENV=production&& nodemon server.js"
   },
   "repository": {
     "type": "git",
