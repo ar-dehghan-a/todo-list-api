@@ -1,6 +1,6 @@
 const {Sequelize} = require('sequelize')
 
-const dev = process.env['NODE_ENV'] === 'development'
+// const dev = process.env['NODE_ENV'] === 'development'
 
 const dbType = 'postgres'
 const host = process.env['DB_HOST']

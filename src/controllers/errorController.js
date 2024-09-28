@@ -15,9 +15,9 @@ const handleUniqueErrorDB = err => {
   return new AppError(message, 409)
 }
 
-const handleJWTError = () => new AppError('The token is incorrect. Please login again.', 401)
+// const handleJWTError = () => new AppError('The token is incorrect. Please login again.', 401)
 
-const handleJWTExpiredError = () => new AppError('Your token has expired. Please login again.', 401)
+// const handleJWTExpiredError = () => new AppError('Your token has expired. Please login again.', 401)
 
 const sendErrorDev = (err, res) => {
   res.status(err.statusCode).json({
@@ -44,7 +44,8 @@ const sendErrorProd = (err, res) => {
   }
 }
 
-module.exports = (err, req, res, next) => {
+// eslint-disable-next-line no-unused-vars
+module.exports = (err, _req, res, _next) => {
   let error = err
 
   error.statusCode = err.statusCode || 500
