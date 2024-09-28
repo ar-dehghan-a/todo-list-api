@@ -2,10 +2,10 @@ const express = require('express')
 const cors = require('cors')
 const morgan = require('morgan')
 
-const mainRouter = require('./routers')
+const mainRouter = require('./routes')
 
 const AppError = require('./utils/appError')
-const errorHandler = require('./controllers/errorHandler')
+const errorController = require('./controllers/errorController')
 
 const app = express()
 
@@ -20,11 +20,10 @@ app.get('/', (req, res) => {
 
 app.use('/api', mainRouter)
 
-// Catch 404 and forward to error handler
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404))
 })
 
-app.use(errorHandler)
+app.use(errorController)
 
 module.exports = app
