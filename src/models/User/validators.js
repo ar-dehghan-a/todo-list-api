@@ -16,6 +16,7 @@ const validateRegister = body =>
 
 const validateLogin = body =>
   Joi.object({
+    email: email.required(),
     password: password.required(),
   }).validate(body, {abortEarly: false})
 
