@@ -1,4 +1,4 @@
-const entity = require('./entity')
+const User = require('./entity')
 const validators = require('./validators')
 
-module.exports = {User: entity, validators}
+module.exports = {User, validators}

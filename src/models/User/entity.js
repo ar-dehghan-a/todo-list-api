@@ -1,5 +1,6 @@
 const {DataTypes} = require('sequelize')
 const sequelize = require('../../config/db')
+const {Todo} = require('../Todo')
 
 const User = sequelize.define('User', {
   id: {
@@ -103,5 +104,8 @@ const User = sequelize.define('User', {
 
 //   return resetToken
 // }
+
+User.hasMany(Todo, {foreignKey: 'userId', onDelete: 'CASCADE'})
+Todo.belongsTo(User, {foreignKey: 'userId', onDelete: 'CASCADE'})
 
 module.exports = User

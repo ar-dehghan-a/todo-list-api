@@ -61,15 +61,15 @@ exports.login = catchAsync(async (req, res, next) => {
 
 exports.protect = catchAsync(async (req, res, next) => {
   let token = ''
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
     token = req.headers.authorization.split(' ')[1]
-  }
-  if (!token) return next(new AppError('Access denied. Please log in to continue.', 401))
+
+  if (!token) return next(new AppError('Access denied. Please login again.', 401))
 
   const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET)
 
   const user = await User.findByPk(decoded.id)
-  if (!user) return next(new AppError('User not found. Please log in again.', 401))
+  if (!user) return next(new AppError('Access denied. Please login again.', 401))
 
   const changedTimestamp = parseInt(user.passwordChangedAt?.getTime() / 1000 || 0, 10)
   if (changedTimestamp > decoded.iat)
