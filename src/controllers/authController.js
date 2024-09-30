@@ -15,7 +15,7 @@ const {
   validateResetPassword,
 } = validators
 
-exports.register = catchAsync(async (req, res, next) => {
+const register = catchAsync(async (req, res, next) => {
   const {error, value} = validateRegister(req.body)
 
   if (error) return next(new AppError(error, 400))
@@ -38,7 +38,7 @@ exports.register = catchAsync(async (req, res, next) => {
   })
 })
 
-exports.login = catchAsync(async (req, res, next) => {
+const login = catchAsync(async (req, res, next) => {
   const {error, value} = validateLogin(req.body)
 
   if (error) return next(new AppError(error, 400))
@@ -63,7 +63,7 @@ exports.login = catchAsync(async (req, res, next) => {
   })
 })
 
-exports.protect = catchAsync(async (req, res, next) => {
+const protect = catchAsync(async (req, res, next) => {
   let token = ''
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
     token = req.headers.authorization.split(' ')[1]
@@ -84,16 +84,16 @@ exports.protect = catchAsync(async (req, res, next) => {
   next()
 })
 
-exports.restrictTo =
+const restrictTo =
   (...roles) =>
   (req, _res, next) => {
-    if (!roles.includes(req.query.user.role))
+    if (!roles.includes(req.user.role))
       return next(new AppError("You don't have access to this operation", 403))
 
     next()
   }
 
-exports.updatePassword = catchAsync(async (req, res, next) => {
+const updatePassword = catchAsync(async (req, res, next) => {
   const {error, value} = validatePassword(req.body)
   if (error) return next(new AppError(error, 400))
 
@@ -123,7 +123,7 @@ exports.updatePassword = catchAsync(async (req, res, next) => {
   })
 })
 
-exports.forgotPassword = catchAsync(async (req, res, next) => {
+const forgotPassword = catchAsync(async (req, res, next) => {
   const {error, value} = validateForgotPassword(req.body)
   if (error) return next(new AppError(error, 400))
 
@@ -161,7 +161,7 @@ exports.forgotPassword = catchAsync(async (req, res, next) => {
   }
 })
 
-exports.resetPassword = catchAsync(async (req, res, next) => {
+const resetPassword = catchAsync(async (req, res, next) => {
   const {error, value} = validateResetPassword(req.body)
   if (error) return next(new AppError(error, 400))
 
@@ -199,3 +199,13 @@ exports.resetPassword = catchAsync(async (req, res, next) => {
     token,
   })
 })
+
+module.exports = {
+  register,
+  login,
+  protect,
+  restrictTo,
+  updatePassword,
+  forgotPassword,
+  resetPassword,
+}
