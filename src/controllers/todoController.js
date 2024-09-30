@@ -132,7 +132,7 @@ const updateTodoCompleted = catchAsync(async (req, res, next) => {
   if (req.user.id !== todo.userId)
     return next(new AppError('You do not have permission to update this todo.', 403))
 
-  if (value.data) await todo.update({isCompleted: true, doneAt: new Date().toISOString()})
+  if (value.data) await todo.update({isCompleted: true, doneAt: Date.now()})
   else await todo.update({isCompleted: value.data, doneAt: null})
 
   res.status(200).json({

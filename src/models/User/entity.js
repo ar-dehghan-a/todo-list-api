@@ -53,53 +53,9 @@ const User = sequelize.define('User', {
   passwordResetExpires: DataTypes.DATE,
 })
 
-// User.beforeValidate(user => {
-//   if (user.password !== user.confirmPassword) {
-//     throw new AppError('رمز عبور و تکرار آن باید با هم برابر باشند', 400)
-//   }
-// })
-
-// User.beforeSave(async (user, options) => {
-//   if (user.changed('password')) {
-//     user.password = await bcrypt.hash(user.password, 12)
-//     user.confirmPassword = null
-//     options.validate = false
-//   }
-// })
-
-// User.beforeUpdate(async user => {
-//   if (user.changed('password')) {
-//     user.passwordChangedAt = Date.now() - 1000
-//   }
-// })
-
-// User.prototype.correctPassword = async (candidatePassword, userPassword) =>
-//   bcrypt.compareSync(candidatePassword, userPassword)
-
-// User.prototype.changedPasswordAfter = (user, JWTTimestamp) => {
-//   if (user.passwordChangedAt) {
-//     const changedTimestamp = parseInt(user.passwordChangedAt.getTime() / 1000, 10)
-//     return JWTTimestamp < changedTimestamp
-//   }
-
-//   return false
-// }
-
-// User.prototype.createPasswordResetToken = async user => {
-//   const resetToken = crypto.randomBytes(32).toString('hex')
-
-//   await user.update(
-//     {
-//       passwordResetToken: crypto.createHash('sha256').update(resetToken).digest('hex'),
-//       passwordResetExpires: Date.now() + 10 * 60 * 1000,
-//     },
-//     {
-//       validate: false,
-//     }
-//   )
-
-//   return resetToken
-// }
+User.beforeUpdate(async user => {
+  if (user.changed('password')) user.passwordChangedAt = Date.now() - 1000
+})
 
 User.hasMany(Todo, {foreignKey: 'userId', onDelete: 'CASCADE'})
 Todo.belongsTo(User, {foreignKey: 'userId', onDelete: 'CASCADE'})

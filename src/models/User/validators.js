@@ -29,8 +29,23 @@ const validatePassword = body =>
     }),
   }).validate(body, {abortEarly: false})
 
+const validateForgotPassword = body =>
+  Joi.object({
+    email: email.required(),
+  }).validate(body, {abortEarly: false})
+
+const validateResetPassword = body =>
+  Joi.object({
+    newPassword: password.required(),
+    confirmPassword: Joi.any().equal(Joi.ref('newPassword')).required().messages({
+      'any.only': 'the newPassword and confirmPassword must be the same',
+    }),
+  }).validate(body, {abortEarly: false})
+
 module.exports = {
   validateRegister,
   validateLogin,
   validatePassword,
+  validateForgotPassword,
+  validateResetPassword,
 }
