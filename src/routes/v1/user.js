@@ -5,6 +5,9 @@ const authController = require('../../controllers/authController')
 const router = Router()
 
 router.use(authController.protect)
-router.route('/').get(authController.restrictTo('admin'), userController.getUsers)
+router
+  .route('/')
+  .get(authController.restrictTo('admin'), userController.getUsers)
+  .delete(userController.deleteUser)
 
 module.exports = router
