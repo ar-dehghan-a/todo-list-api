@@ -2,6 +2,55 @@ const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
 const {validators, Todo, serializer} = require('../models/Todo')
 const {validateCreateTodo, validateUpdateTodo} = validators
+const pagination = require('../utils/pagination')
+
+const getTodos = catchAsync(async (req, res) => {
+  const {isCompleted, isImportant, sortBy} = req.query
+  const {page, limit, offset} = pagination(req.query)
+
+  let where = {userId: req.user.id}
+
+  isCompleted === 'true' && (where.isCompleted = true)
+  isCompleted === 'false' && (where.isCompleted = false)
+
+  isImportant === 'true' && (where.isImportant = true)
+  isImportant === 'false' && (where.isImportant = false)
+
+  let order = []
+
+  switch (sortBy) {
+    case '0':
+      order.push([['doneAt', 'ASC']])
+      break
+
+    case '1':
+      order.push([['doneAt', 'DESC']])
+      break
+
+    case '2':
+      order.push([['createdAt', 'ASC']])
+      break
+
+    default:
+      order.push([['createdAt', 'DESC']])
+      break
+  }
+
+  const todos = await Todo.findAndCountAll({
+    where,
+    limit,
+    offset,
+    order,
+  })
+
+  res.status(200).json({
+    status: 'success',
+    data: todos.rows.map(todo => serializer(todo)),
+    page,
+    limit,
+    total: todos.count,
+  })
+})
 
 const createTodo = catchAsync(async (req, res, next) => {
   const {error, value} = validateCreateTodo(req.body)
@@ -54,4 +103,4 @@ const deleteTodo = catchAsync(async (req, res, next) => {
   })
 })
 
-module.exports = {createTodo, updateTodo, deleteTodo}
+module.exports = {getTodos, createTodo, updateTodo, deleteTodo}

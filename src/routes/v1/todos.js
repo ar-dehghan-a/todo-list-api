@@ -6,7 +6,7 @@ const router = Router()
 
 router.use(authController.protect)
 
-router.route('/').post(todoController.createTodo)
+router.route('/').get(todoController.getTodos).post(todoController.createTodo)
 router.route('/:id').patch(todoController.updateTodo).delete(todoController.deleteTodo)
 
 module.exports = router
