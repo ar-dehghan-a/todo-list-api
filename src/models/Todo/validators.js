@@ -17,4 +17,9 @@ const validateUpdateTodo = body =>
     })
     .validate(body, {abortEarly: false})
 
-module.exports = {validateCreateTodo, validateUpdateTodo}
+const validateUpdateTodoToggle = body =>
+  Joi.object({
+    data: Joi.boolean().required(),
+  }).validate(body, {abortEarly: false})
+
+module.exports = {validateCreateTodo, validateUpdateTodo, validateUpdateTodoToggle}

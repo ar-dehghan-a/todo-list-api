@@ -1,7 +1,7 @@
 const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
 const {validators, Todo, serializer} = require('../models/Todo')
-const {validateCreateTodo, validateUpdateTodo} = validators
+const {validateCreateTodo, validateUpdateTodo, validateUpdateTodoToggle} = validators
 const pagination = require('../utils/pagination')
 
 const getTodo = catchAsync(async (req, res, next) => {
@@ -119,4 +119,55 @@ const deleteTodo = catchAsync(async (req, res, next) => {
   })
 })
 
-module.exports = {getTodo, getTodos, createTodo, updateTodo, deleteTodo}
+const updateTodoCompleted = catchAsync(async (req, res, next) => {
+  const {id} = req.params
+  const {error, value} = validateUpdateTodoToggle(req.body)
+
+  if (error) return next(new AppError(error, 400))
+
+  const todo = await Todo.findByPk(id)
+
+  if (!todo) return next(new AppError('Todo not found', 404))
+
+  if (req.user.id !== todo.userId)
+    return next(new AppError('You do not have permission to update this todo.', 403))
+
+  if (value.data) await todo.update({isCompleted: true, doneAt: new Date().toISOString()})
+  else await todo.update({isCompleted: value.data, doneAt: null})
+
+  res.status(200).json({
+    status: 'success',
+    data: serializer(todo),
+  })
+})
+
+const updateTodoImportant = catchAsync(async (req, res, next) => {
+  const {id} = req.params
+  const {error, value} = validateUpdateTodoToggle(req.body)
+
+  if (error) return next(new AppError(error, 400))
+
+  const todo = await Todo.findByPk(id)
+
+  if (!todo) return next(new AppError('Todo not found', 404))
+
+  if (req.user.id !== todo.userId)
+    return next(new AppError('You do not have permission to update this todo.', 403))
+
+  await todo.update({isImportant: value.data})
+
+  res.status(200).json({
+    status: 'success',
+    data: serializer(todo),
+  })
+})
+
+module.exports = {
+  getTodo,
+  getTodos,
+  createTodo,
+  updateTodo,
+  deleteTodo,
+  updateTodoCompleted,
+  updateTodoImportant,
+}
