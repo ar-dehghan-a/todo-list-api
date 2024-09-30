@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken')
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const {User, validators} = require('../models/User')
-const {validateRegister, validateLogin} = validators
+const {validateRegister, validateLogin, validatePassword} = validators
 const {generateHash, compareHash} = require('../utils/hash')
 
 const signToken = id =>
@@ -40,10 +40,10 @@ exports.login = catchAsync(async (req, res, next) => {
   if (error) return next(new AppError(error, 400))
 
   const user = await User.findOne({where: {email: value.email}})
-  if (!user) return next(new AppError('Email or password is incorrect', 403))
+  if (!user) return next(new AppError('Email or password is incorrect', 401))
 
   const correct = compareHash(value.password, user.password)
-  if (!correct) return next(new AppError('Email or password is incorrect', 403))
+  if (!correct) return next(new AppError('Email or password is incorrect', 401))
 
   const token = signToken(user.id)
 
@@ -78,4 +78,44 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = user.toJSON()
 
   next()
+})
+
+exports.restrictTo =
+  (...roles) =>
+  (req, _res, next) => {
+    if (!roles.includes(req.query.user.role))
+      return next(new AppError("You don't have access to this operation", 403))
+
+    next()
+  }
+
+exports.updatePassword = catchAsync(async (req, res, next) => {
+  const user = await User.findByPk(req.user.id)
+
+  const {error, value} = validatePassword(req.body)
+  if (error) return next(new AppError(error, 400))
+
+  const correct = compareHash(value.currentPassword, user.password)
+  if (!correct) return next(new AppError('Your current password is incorrect', 401))
+
+  value.newPassword = generateHash(value.newPassword)
+  value.confirmPassword = undefined
+
+  await user.update({
+    password: value.newPassword,
+    passwordChangedAt: new Date().toISOString(),
+  })
+
+  const token = signToken(user.id)
+
+  res.cookie('jwt', token, {
+    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+  })
+
+  res.status(200).json({
+    status: 'success',
+    token,
+  })
 })

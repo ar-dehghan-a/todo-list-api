@@ -20,23 +20,17 @@ const validateLogin = body =>
     password: password.required(),
   }).validate(body, {abortEarly: false})
 
-const validateProfile = body =>
-  Joi.object({
-    name: title,
-    email: email,
-  })
-    .min(1)
-    .validate(body, {abortEarly: false})
-
 const validatePassword = body =>
   Joi.object({
     currentPassword: password.required(),
     newPassword: password.required(),
+    confirmPassword: Joi.any().equal(Joi.ref('newPassword')).required().messages({
+      'any.only': 'the newPassword and confirmPassword must be the same',
+    }),
   }).validate(body, {abortEarly: false})
 
 module.exports = {
   validateRegister,
   validateLogin,
-  validateProfile,
   validatePassword,
 }

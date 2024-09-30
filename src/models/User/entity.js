@@ -42,10 +42,6 @@ const User = sequelize.define('User', {
       notNull: {msg: 'Password is required'},
     },
   },
-  confirmPassword: {
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
   photo: DataTypes.STRING,
   role: {
     type: DataTypes.STRING,
