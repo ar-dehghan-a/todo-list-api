@@ -20,6 +20,12 @@ const validateLogin = body =>
     password: password.required(),
   }).validate(body, {abortEarly: false})
 
+const validateUpdate = body =>
+  Joi.object({
+    name: title,
+    email: email,
+  }).validate(body, {abortEarly: false})
+
 const validatePassword = body =>
   Joi.object({
     currentPassword: password.required(),
@@ -45,6 +51,7 @@ const validateResetPassword = body =>
 module.exports = {
   validateRegister,
   validateLogin,
+  validateUpdate,
   validatePassword,
   validateForgotPassword,
   validateResetPassword,

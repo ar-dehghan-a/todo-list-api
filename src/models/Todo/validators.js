@@ -1,15 +1,17 @@
 const Joi = require('joi')
 
+const title = Joi.string().trim().min(2).max(150)
+
 const validateCreateTodo = body =>
   Joi.object({
-    title: Joi.string().required(),
+    title: title.required(),
     description: Joi.string(),
   }).validate(body, {abortEarly: false})
 
 const validateUpdateTodo = body =>
   Joi.object({
-    title: Joi.string().optional(),
-    description: Joi.string().optional(),
+    title: title,
+    description: Joi.string(),
   })
     .min(1)
     .messages({
