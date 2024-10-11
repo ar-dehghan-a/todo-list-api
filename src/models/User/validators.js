@@ -7,6 +7,7 @@ const password = Joi.string().min(8)
 const validateRegister = body =>
   Joi.object({
     name: title.required(),
+    surname: title.required(),
     email: email.required(),
     password: password.required(''),
     confirmPassword: Joi.any().equal(Joi.ref('password')).required().messages({
@@ -23,6 +24,7 @@ const validateLogin = body =>
 const validateUpdate = body =>
   Joi.object({
     name: title,
+    surname: title,
     email: email,
   }).validate(body, {abortEarly: false})
 

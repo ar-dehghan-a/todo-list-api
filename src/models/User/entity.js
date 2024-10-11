@@ -21,6 +21,18 @@ const User = sequelize.define('User', {
       },
     },
   },
+  surname: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    validate: {
+      notEmpty: {msg: 'Surname cannot be empty'},
+      notNull: {msg: 'Surname is required'},
+      len: {
+        args: [2, 150],
+        msg: 'Surname must be between 2 and 150 characters long',
+      },
+    },
+  },
   email: {
     type: DataTypes.STRING,
     unique: {msg: 'Email must be unique'},
