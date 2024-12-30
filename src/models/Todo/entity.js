@@ -16,7 +16,7 @@ const Todo = sequelize.define('Todo', {
       notNull: {msg: 'Title is required'},
     },
   },
-  description: {
+  note: {
     type: DataTypes.STRING,
     defaultValue: '',
   },

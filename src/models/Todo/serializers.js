@@ -1,7 +1,7 @@
 const serializer = todo => ({
   id: todo.id,
   title: todo.title,
-  description: todo.description,
+  note: todo.note,
   isCompleted: todo.isCompleted,
   isImportant: todo.isImportant,
   doneAt: todo.doneAt,
