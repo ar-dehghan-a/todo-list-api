@@ -1,7 +1,7 @@
 const catchAsync = require('../utils/catchAsync')
 const AppError = require('../utils/appError')
 const {validators, Todo, serializer} = require('../models/Todo')
-const {validateCreateTodo, validateUpdateTodo, validateUpdateTodoToggle} = validators
+const {validateCreateTodo, validateUpdateTodo} = validators
 const pagination = require('../utils/pagination')
 
 const getTodo = catchAsync(async (req, res, next) => {
@@ -119,11 +119,8 @@ const deleteTodo = catchAsync(async (req, res, next) => {
   })
 })
 
-const updateTodoCompleted = catchAsync(async (req, res, next) => {
+const toggleTodoCompleted = catchAsync(async (req, res, next) => {
   const {id} = req.params
-  const {error, value} = validateUpdateTodoToggle(req.body)
-
-  if (error) return next(new AppError(error, 400))
 
   const todo = await Todo.findByPk(id)
 
@@ -132,8 +129,8 @@ const updateTodoCompleted = catchAsync(async (req, res, next) => {
   if (req.user.id !== todo.userId)
     return next(new AppError('You do not have permission to update this todo.', 403))
 
-  if (value.data) await todo.update({isCompleted: true, doneAt: Date.now()})
-  else await todo.update({isCompleted: value.data, doneAt: null})
+  const newStatus = !todo.isCompleted
+  await todo.update({isCompleted: newStatus, doneAt: newStatus ? Date.now() : null})
 
   res.status(200).json({
     status: 'success',
@@ -141,11 +138,8 @@ const updateTodoCompleted = catchAsync(async (req, res, next) => {
   })
 })
 
-const updateTodoImportant = catchAsync(async (req, res, next) => {
+const toggleTodoImportant = catchAsync(async (req, res, next) => {
   const {id} = req.params
-  const {error, value} = validateUpdateTodoToggle(req.body)
-
-  if (error) return next(new AppError(error, 400))
 
   const todo = await Todo.findByPk(id)
 
@@ -154,7 +148,8 @@ const updateTodoImportant = catchAsync(async (req, res, next) => {
   if (req.user.id !== todo.userId)
     return next(new AppError('You do not have permission to update this todo.', 403))
 
-  await todo.update({isImportant: value.data})
+  const newStatus = !todo.isImportant
+  await todo.update({isImportant: newStatus})
 
   res.status(200).json({
     status: 'success',
@@ -168,6 +163,6 @@ module.exports = {
   createTodo,
   updateTodo,
   deleteTodo,
-  updateTodoCompleted,
-  updateTodoImportant,
+  toggleTodoCompleted,
+  toggleTodoImportant,
 }

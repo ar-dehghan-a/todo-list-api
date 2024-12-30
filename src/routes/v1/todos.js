@@ -13,7 +13,7 @@ router
   .patch(todoController.updateTodo)
   .delete(todoController.deleteTodo)
 
-router.patch('/:id/completed', todoController.updateTodoCompleted)
-router.patch('/:id/important', todoController.updateTodoImportant)
+router.patch('/:id/completed', todoController.toggleTodoCompleted)
+router.patch('/:id/important', todoController.toggleTodoImportant)
 
 module.exports = router
