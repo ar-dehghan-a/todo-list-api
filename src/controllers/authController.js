@@ -6,7 +6,7 @@ const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const {generateHash, compareHash} = require('../utils/hash')
 const sendEmail = require('../utils/email')
-const {User, validators} = require('../models/User')
+const {User, validators, serializer} = require('../models/User')
 const {
   validateRegister,
   validateLogin,
@@ -15,22 +15,42 @@ const {
   validateResetPassword,
 } = validators
 
+// Constants
+const TOKEN_EXPIRY = process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+const RESET_TOKEN_EXPIRY = 10 * 60 * 1000
+
+// Helper functions
+const setJwtCookie = (res, token) => {
+  res.cookie('jwt', token, {
+    expires: new Date(Date.now() + TOKEN_EXPIRY),
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'strict',
+    path: '/',
+  })
+}
+
+const generateResetToken = () => crypto.randomBytes(32).toString('hex')
+const hashResetToken = token => crypto.createHash('sha256').update(token).digest('hex')
+
 const register = catchAsync(async (req, res, next) => {
   const {error, value} = validateRegister(req.body)
-
   if (error) return next(new AppError(error, 400))
 
+  // Check if user already exists
+  const existingUser = await User.findOne({where: {email: value.email}})
+  if (existingUser) return next(new AppError('Email already registered', 400))
+
+  // Hash password
   value.password = generateHash(value.password)
   value.confirmPassword = undefined
 
   const newUser = await User.create(value)
   const token = signToken(newUser.id)
 
-  res.cookie('jwt', token, {
-    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-  })
+  setJwtCookie(res, token)
+
+  logger.info(`New user registered: ${newUser.email}`)
 
   res.status(201).json({
     status: 'success',
@@ -40,7 +60,6 @@ const register = catchAsync(async (req, res, next) => {
 
 const login = catchAsync(async (req, res, next) => {
   const {error, value} = validateLogin(req.body)
-
   if (error) return next(new AppError(error, 400))
 
   const user = await User.findOne({where: {email: value.email}})
@@ -50,23 +69,20 @@ const login = catchAsync(async (req, res, next) => {
   if (!correct) return next(new AppError('Email or password is incorrect', 401))
 
   const token = signToken(user.id)
-
-  res.cookie('jwt', token, {
-    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-  })
+  setJwtCookie(res, token)
 
   res.status(200).json({
     status: 'success',
     token,
+    data: serializer(user),
   })
 })
 
 const protect = catchAsync(async (req, res, next) => {
   let token = ''
-  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer'))
+  if (req.headers.authorization?.startsWith('Bearer'))
     token = req.headers.authorization.split(' ')[1]
+  else if (req.cookies.jwt) token = req.cookies.jwt
 
   if (!token) return next(new AppError('Unauthorized. Please login again.', 401))
 
@@ -80,7 +96,6 @@ const protect = catchAsync(async (req, res, next) => {
     return next(new AppError('Password was recently changed. Please log in again.', 401))
 
   req.user = user.toJSON()
-
   next()
 })
 
@@ -97,25 +112,16 @@ const updatePassword = catchAsync(async (req, res, next) => {
   const {error, value} = validatePassword(req.body)
   if (error) return next(new AppError(error, 400))
 
-  const user = await User.findByPk(req.user.id)
+  const user = await User.findOne({where: {id: req.user.id}})
 
   const correct = compareHash(value.currentPassword, user.password)
   if (!correct) return next(new AppError('Your current password is incorrect', 401))
 
-  value.newPassword = generateHash(value.newPassword)
-  value.confirmPassword = undefined
-
-  await user.update({
-    password: value.newPassword,
-  })
+  const hashedPassword = generateHash(value.newPassword)
+  await user.update({password: hashedPassword})
 
   const token = signToken(user.id)
-
-  res.cookie('jwt', token, {
-    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-  })
+  setJwtCookie(res, token)
 
   res.status(200).json({
     status: 'success',
@@ -128,16 +134,24 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   if (error) return next(new AppError(error, 400))
 
   const user = await User.findOne({where: {email: value.email}})
-  if (!user) return next(new AppError('There is no user with this email', 404))
 
-  const resetToken = crypto.randomBytes(32).toString('hex')
+  // Don't reveal if email exists or not for security
+  if (!user)
+    return res.status(200).json({
+      status: 'success',
+      message: 'If the email exists, a reset token has been sent.',
+    })
+
+  const resetToken = generateResetToken()
+  const hashedToken = hashResetToken(resetToken)
   const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/resetPassword/${resetToken}`
-  const message = `Did you forget your password? Send the new password and confirmation of the new password with a patch request to this address:\n${resetURL}\nIf you have not forgotten your password, do not pay attention to this email.`
 
   await user.update({
-    passwordResetToken: crypto.createHash('sha256').update(resetToken).digest('hex'),
-    passwordResetExpires: Date.now() + 10 * 60 * 1000,
+    passwordResetToken: hashedToken,
+    passwordResetExpires: Date.now() + RESET_TOKEN_EXPIRY,
   })
+
+  const message = `Did you forget your password? Send the new password and confirmation of the new password with a patch request to this address:\n${resetURL}\nIf you have not forgotten your password, do not pay attention to this email.`
 
   try {
     await sendEmail({
@@ -148,15 +162,16 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 
     res.status(200).json({
       status: 'success',
-      message: 'The token has been sent to your email',
+      message: 'If the email exists, a reset token has been sent.',
     })
   } catch (err) {
-    logger.error(err)
+    logger.error(`Failed to send password reset email: ${err.message}`)
 
     await user.update({
       passwordResetToken: null,
       passwordResetExpires: null,
     })
+
     return next(new AppError('There was a problem sending the email. Please try again later.', 500))
   }
 })
@@ -165,7 +180,8 @@ const resetPassword = catchAsync(async (req, res, next) => {
   const {error, value} = validateResetPassword(req.body)
   if (error) return next(new AppError(error, 400))
 
-  const hashedToken = crypto.createHash('sha256').update(req.params.token).digest('hex')
+  const hashedToken = hashResetToken(req.params.token)
+
   const user = await User.findOne({
     where: {
       passwordResetToken: hashedToken,
@@ -177,22 +193,15 @@ const resetPassword = catchAsync(async (req, res, next) => {
 
   if (!user) return next(new AppError('Your token is not valid or has expired.', 401))
 
-  value.newPassword = generateHash(value.newPassword)
-  value.confirmPassword = undefined
-
+  const hashedPassword = generateHash(value.newPassword)
   await user.update({
-    password: value.newPassword,
+    password: hashedPassword,
     passwordResetToken: null,
     passwordResetExpires: null,
   })
 
   const token = signToken(user.id)
-
-  res.cookie('jwt', token, {
-    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
-    secure: process.env.NODE_ENV === 'production',
-    httpOnly: true,
-  })
+  setJwtCookie(res, token)
 
   res.status(200).json({
     status: 'success',

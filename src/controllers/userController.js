@@ -59,6 +59,8 @@ const updateUser = catchAsync(async (req, res, next) => {
   if (req.file) value.photo = req.file.filename
 
   const user = await User.findByPk(req.user.id)
+  if (!user) return next(new AppError('User not found.', 404))
+
   await user.update(value)
 
   res.status(200).json({
@@ -67,12 +69,13 @@ const updateUser = catchAsync(async (req, res, next) => {
   })
 })
 
-const deleteUser = catchAsync(async (req, res) => {
-  const user = await User.findByPk(req.user.id)
-  await user.destroy()
+const deleteUser = catchAsync(async (req, res, next) => {
+  const deletedCount = await User.destroy({where: {id: req.user.id}})
+  if (!deletedCount) return next(new AppError('User not found.', 404))
 
   res.status(204).json({
     status: 'success',
+    message: 'User account deleted successfully.',
   })
 })
 

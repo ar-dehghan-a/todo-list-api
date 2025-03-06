@@ -2,39 +2,49 @@ const {DataTypes} = require('sequelize')
 const sequelize = require('../../config/db')
 const {Todo} = require('../Todo')
 
+// Constants
+const NAME_MIN_LENGTH = 2
+const NAME_MAX_LENGTH = 150
+const PASSWORD_MIN_LENGTH = 8
+const PASSWORD_MAX_LENGTH = 100
+const EMAIL_MAX_LENGTH = 255
+const PHOTO_MAX_LENGTH = 255
+
 const User = sequelize.define('User', {
   id: {
     type: DataTypes.UUID,
     defaultValue: DataTypes.UUIDV4,
     primaryKey: true,
     allowNull: false,
+    comment: 'Unique identifier for the user',
   },
   name: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(NAME_MAX_LENGTH),
     allowNull: false,
     validate: {
       notEmpty: {msg: 'Name cannot be empty'},
       notNull: {msg: 'Name is required'},
       len: {
-        args: [2, 150],
-        msg: 'Name must be between 2 and 150 characters long',
+        args: [NAME_MIN_LENGTH, NAME_MAX_LENGTH],
+        msg: `Name must be between ${NAME_MIN_LENGTH} and ${NAME_MAX_LENGTH} characters long`,
       },
     },
   },
   surname: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(NAME_MAX_LENGTH),
     allowNull: false,
     validate: {
       notEmpty: {msg: 'Surname cannot be empty'},
       notNull: {msg: 'Surname is required'},
       len: {
-        args: [2, 150],
-        msg: 'Surname must be between 2 and 150 characters long',
+        args: [NAME_MIN_LENGTH, NAME_MAX_LENGTH],
+        msg: `Surname must be between ${NAME_MIN_LENGTH} and ${NAME_MAX_LENGTH} characters long`,
       },
     },
+    comment: "User's last name",
   },
   email: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(EMAIL_MAX_LENGTH),
     unique: {msg: 'Email must be unique'},
     allowNull: false,
     validate: {
@@ -42,23 +52,42 @@ const User = sequelize.define('User', {
       notNull: {msg: 'Email is required'},
       isLowercase: true,
     },
+    comment: "User's email address",
   },
   password: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(PASSWORD_MAX_LENGTH),
     allowNull: false,
     validate: {
       len: {
-        args: [8],
-        msg: 'Password must be at least 8 characters long',
+        args: [PASSWORD_MIN_LENGTH, PASSWORD_MAX_LENGTH],
+        msg: `Password must be between ${PASSWORD_MIN_LENGTH} and ${PASSWORD_MAX_LENGTH} characters long`,
       },
       notNull: {msg: 'Password is required'},
     },
+    comment: 'Hashed password',
   },
-  photo: DataTypes.STRING,
+  photo: {
+    type: DataTypes.STRING(PHOTO_MAX_LENGTH),
+    allowNull: true,
+    validate: {
+      len: {
+        args: [1, PHOTO_MAX_LENGTH],
+        msg: `Photo URL must be between 1 and ${PHOTO_MAX_LENGTH} characters long`,
+      },
+    },
+    comment: "URL to user's profile photo",
+  },
   role: {
-    type: DataTypes.STRING,
-    validate: {isIn: [['admin', 'user']]},
+    type: DataTypes.ENUM('admin', 'user'),
     defaultValue: 'user',
+    allowNull: false,
+    validate: {
+      isIn: {
+        args: [['admin', 'user']],
+        msg: 'Role must be either admin or user',
+      },
+    },
+    comment: "User's role in the system",
   },
   passwordChangedAt: DataTypes.DATE,
   passwordResetToken: DataTypes.STRING,
