@@ -9,7 +9,7 @@ const Todo = sequelize.define('Todo', {
     allowNull: false,
   },
   title: {
-    type: DataTypes.STRING,
+    type: DataTypes.STRING(150),
     allowNull: false,
     validate: {
       notEmpty: {msg: 'Task title cannot be empty.'},
@@ -17,8 +17,8 @@ const Todo = sequelize.define('Todo', {
     },
   },
   note: {
-    type: DataTypes.STRING,
-    defaultValue: '',
+    type: DataTypes.STRING(500),
+    allowNull: true,
   },
   isCompleted: {
     type: DataTypes.BOOLEAN,
@@ -28,7 +28,13 @@ const Todo = sequelize.define('Todo', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
-  doneAt: DataTypes.DATE,
+  doneAt: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    validate: {
+      isDate: {msg: 'doneAt must be a valid date.'},
+    },
+  },
 })
 
 module.exports = Todo

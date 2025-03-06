@@ -7,12 +7,13 @@ const pagination = require('../utils/pagination')
 const getTodo = catchAsync(async (req, res, next) => {
   const {id} = req.params
 
-  const todo = await Todo.findByPk(id)
+  if (!id || isNaN(Number(id))) return next(new AppError('Invalid Todo ID.', 400))
 
-  if (!todo) return next(new AppError('Todo not found', 404))
+  const todo = await Todo.findOne({
+    where: {id, userId: req.user.id},
+  })
 
-  if (req.user.id !== todo.userId)
-    return next(new AppError('You do not have permission to update this todo.', 403))
+  if (!todo) return next(new AppError('Todo not found.', 404))
 
   res.status(200).json({
     status: 'success',
@@ -26,45 +27,32 @@ const getTodos = catchAsync(async (req, res) => {
 
   let where = {userId: req.user.id}
 
-  isCompleted === 'true' && (where.isCompleted = true)
-  isCompleted === 'false' && (where.isCompleted = false)
+  if (isCompleted !== undefined) where.isCompleted = isCompleted === 'true'
+  if (isImportant !== undefined) where.isImportant = isImportant === 'true'
 
-  isImportant === 'true' && (where.isImportant = true)
-  isImportant === 'false' && (where.isImportant = false)
-
-  let order = []
-
-  switch (sortBy) {
-    case '0':
-      order.push([['doneAt', 'ASC']])
-      break
-
-    case '1':
-      order.push([['doneAt', 'DESC']])
-      break
-
-    case '2':
-      order.push([['createdAt', 'ASC']])
-      break
-
-    default:
-      order.push([['createdAt', 'DESC']])
-      break
-  }
+  const order = {
+    0: ['doneAt', 'ASC'],
+    1: ['doneAt', 'DESC'],
+    2: ['createdAt', 'ASC'],
+  }[sortBy] || ['createdAt', 'DESC']
 
   const todos = await Todo.findAndCountAll({
     where,
     limit,
     offset,
-    order,
+    order: [order],
   })
+
+  const data = todos.rows.map(serializer)
 
   res.status(200).json({
     status: 'success',
-    data: todos.rows.map(todo => serializer(todo)),
-    page,
-    limit,
-    total: todos.count,
+    data,
+    meta: {
+      page,
+      limit,
+      total: todos.count,
+    },
   })
 })
 
@@ -87,12 +75,11 @@ const updateTodo = catchAsync(async (req, res, next) => {
 
   if (error) return next(new AppError(error, 400))
 
-  const todo = await Todo.findByPk(id)
+  const todo = await Todo.findOne({
+    where: {id, userId: req.user.id},
+  })
 
-  if (!todo) return next(new AppError('Todo not found', 404))
-
-  if (req.user.id !== todo.userId)
-    return next(new AppError('You do not have permission to update this todo.', 403))
+  if (!todo) return next(new AppError('Todo not found.', 404))
 
   await todo.update(value)
 
@@ -105,32 +92,26 @@ const updateTodo = catchAsync(async (req, res, next) => {
 const deleteTodo = catchAsync(async (req, res, next) => {
   const {id} = req.params
 
-  const todo = await Todo.findByPk(id)
+  const deletedCount = await Todo.destroy({
+    where: {id, userId: req.user.id},
+  })
 
-  if (!todo) return next(new AppError('Todo not found', 404))
+  if (!deletedCount) return next(new AppError('Todo not found.', 404))
 
-  if (req.user.id !== todo.userId)
-    return next(new AppError('You do not have permission to update this todo.', 403))
-
-  await todo.destroy()
-
-  res.status(204).json({
+  res.status(200).json({
     status: 'success',
+    message: 'Todo successfully deleted.',
   })
 })
 
 const toggleTodoCompleted = catchAsync(async (req, res, next) => {
   const {id} = req.params
 
-  const todo = await Todo.findByPk(id)
-
-  if (!todo) return next(new AppError('Todo not found', 404))
-
-  if (req.user.id !== todo.userId)
-    return next(new AppError('You do not have permission to update this todo.', 403))
+  const todo = await Todo.findOne({where: {id, userId: req.user.id}})
+  if (!todo) return next(new AppError('Todo not found.', 404))
 
   const newStatus = !todo.isCompleted
-  await todo.update({isCompleted: newStatus, doneAt: newStatus ? Date.now() : null})
+  await todo.update({isCompleted: newStatus, doneAt: newStatus ? new Date() : null})
 
   res.status(200).json({
     status: 'success',
@@ -141,12 +122,8 @@ const toggleTodoCompleted = catchAsync(async (req, res, next) => {
 const toggleTodoImportant = catchAsync(async (req, res, next) => {
   const {id} = req.params
 
-  const todo = await Todo.findByPk(id)
-
-  if (!todo) return next(new AppError('Todo not found', 404))
-
-  if (req.user.id !== todo.userId)
-    return next(new AppError('You do not have permission to update this todo.', 403))
+  const todo = await Todo.findOne({where: {id, userId: req.user.id}})
+  if (!todo) return next(new AppError('Todo not found.', 404))
 
   const newStatus = !todo.isImportant
   await todo.update({isImportant: newStatus})
