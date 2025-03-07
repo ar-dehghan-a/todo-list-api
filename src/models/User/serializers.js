@@ -1,6 +1,7 @@
 const serializer = user => ({
   id: user.id,
   name: user.name,
+  surname: user.surname,
   email: user.email,
   photo: user.photo,
   role: user.role,

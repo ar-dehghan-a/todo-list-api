@@ -44,6 +44,7 @@ const validateUpdate = body =>
     name: title,
     surname: title,
     email: email,
+    photo: Joi.string().allow(null).optional(),
   }).validate(body, {abortEarly: false})
 
 const validatePassword = body =>
