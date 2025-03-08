@@ -6,7 +6,7 @@ const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const {generateHash, compareHash} = require('../utils/hash')
 const sendEmail = require('../utils/email')
-const {User, validators, serializer} = require('../models/User')
+const {User, validators} = require('../models/User')
 const {
   validateRegister,
   validateLogin,
@@ -74,7 +74,6 @@ const login = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     token,
-    data: serializer(user),
   })
 })
 

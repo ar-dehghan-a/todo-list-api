@@ -1,8 +1,8 @@
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const {User, validators, serializer} = require('../models/User')
-const {validateUpdate} = validators
 const {File} = require('../models/File')
+const {validateUpdate} = validators
 
 const getUsers = catchAsync(async (_req, res) => {
   const users = await User.findAll()
@@ -10,6 +10,16 @@ const getUsers = catchAsync(async (_req, res) => {
   res.status(200).json({
     status: 'success',
     data: users.map(user => serializer(user)),
+  })
+})
+
+const getUser = catchAsync(async (req, res, next) => {
+  const user = await User.findByPk(req.user.id)
+  if (!user) return next(new AppError('User not found.', 404))
+
+  res.status(200).json({
+    status: 'success',
+    data: serializer(user),
   })
 })
 
@@ -27,7 +37,7 @@ const updateUser = catchAsync(async (req, res, next) => {
     if (!file.mimeType.startsWith('image/'))
       return next(new AppError('File must be an image.', 400))
 
-    value.photo = file.id
+    value.photo = `${req.protocol}://${req.get('host')}${file.url}`
   }
 
   await user.update(value)
@@ -48,4 +58,4 @@ const deleteUser = catchAsync(async (req, res, next) => {
   })
 })
 
-module.exports = {getUsers, updateUser, deleteUser}
+module.exports = {getUsers, getUser, updateUser, deleteUser}

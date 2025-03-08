@@ -1,5 +1,6 @@
 const {DataTypes} = require('sequelize')
 const sequelize = require('../../config/db')
+const {User} = require('../User')
 
 const Todo = sequelize.define('Todo', {
   id: {
@@ -35,6 +36,15 @@ const Todo = sequelize.define('Todo', {
       isDate: {msg: 'doneAt must be a valid date.'},
     },
   },
+})
+
+Todo.belongsTo(User, {
+  foreignKey: {
+    name: 'userId',
+    type: DataTypes.UUID,
+  },
+  as: 'userDetails',
+  onDelete: 'CASCADE',
 })
 
 module.exports = Todo

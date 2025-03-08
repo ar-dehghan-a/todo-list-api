@@ -1,6 +1,5 @@
 const {DataTypes} = require('sequelize')
 const sequelize = require('../../config/db')
-const {Todo} = require('../Todo')
 
 // Constants
 const NAME_MIN_LENGTH = 2
@@ -8,7 +7,6 @@ const NAME_MAX_LENGTH = 150
 const PASSWORD_MIN_LENGTH = 8
 const PASSWORD_MAX_LENGTH = 100
 const EMAIL_MAX_LENGTH = 255
-const PHOTO_MAX_LENGTH = 255
 
 const User = sequelize.define('User', {
   id: {
@@ -67,14 +65,8 @@ const User = sequelize.define('User', {
     comment: 'Hashed password',
   },
   photo: {
-    type: DataTypes.STRING(PHOTO_MAX_LENGTH),
+    type: DataTypes.STRING,
     allowNull: true,
-    validate: {
-      len: {
-        args: [1, PHOTO_MAX_LENGTH],
-        msg: `Photo URL must be between 1 and ${PHOTO_MAX_LENGTH} characters long`,
-      },
-    },
     comment: "URL to user's profile photo",
   },
   role: {
@@ -97,8 +89,5 @@ const User = sequelize.define('User', {
 User.beforeUpdate(async user => {
   if (user.changed('password')) user.passwordChangedAt = Date.now() - 1000
 })
-
-User.hasMany(Todo, {foreignKey: 'userId', onDelete: 'CASCADE'})
-Todo.belongsTo(User, {foreignKey: 'userId', onDelete: 'CASCADE'})
 
 module.exports = User
