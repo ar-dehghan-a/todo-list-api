@@ -13,6 +13,7 @@ const sequelize = new Sequelize(database, username, password, {
   host: host,
   port: port,
   dialect: dbType,
+  logging: false,
 })
 
 module.exports = sequelize

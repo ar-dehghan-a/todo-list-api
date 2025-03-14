@@ -98,7 +98,7 @@ const deleteTodo = catchAsync(async (req, res, next) => {
 
   if (!deletedCount) return next(new AppError('Todo not found.', 404))
 
-  res.status(200).json({
+  res.status(204).json({
     status: 'success',
     message: 'Todo successfully deleted.',
   })
