@@ -18,7 +18,7 @@ app.use(helmet())
 
 // Limit requests from same API
 const limiter = rateLimit({
-  max: 100,
+  max: 300,
   windowMs: 15 * 60 * 1000,
   message: 'Too many requests from this IP, please try again after 15 minutes.',
 })
@@ -36,7 +36,7 @@ app.use(compression())
 
 app.use('/api', mainRouter)
 
-app.all('*', (req, res, next) => {
+app.all('*', (req, _res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404))
 })
 

@@ -16,6 +16,7 @@ const validateCreateTodo = body =>
   Joi.object({
     title: title.required(),
     note: note,
+    isImportant: Joi.boolean(),
   }).validate(body, {abortEarly: false})
 
 const validateUpdateTodo = body =>
