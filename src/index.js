@@ -18,7 +18,7 @@ app.use(helmet())
 
 // Limit requests from same API
 const limiter = rateLimit({
-  max: 300,
+  max: 200,
   windowMs: 15 * 60 * 1000,
   message: 'Too many requests from this IP, please try again after 15 minutes.',
 })
@@ -30,7 +30,17 @@ app.use(cors())
 if (process.env['NODE_ENV'] === 'development') app.use(morgan('dev'))
 
 // Serving static files
-app.use(express.static(path.join(__dirname, '../', 'public')))
+app.use(
+  express.static(path.join(__dirname, '../', 'public'), {
+    setHeaders: res => {
+      // Option 1: If the resources should be available to same-site
+      res.set('Cross-Origin-Resource-Policy', 'same-site')
+
+      // Option 2: If the resources should be available cross-origin (only if safe)
+      // res.set('Cross-Origin-Resource-Policy', 'cross-origin');
+    },
+  })
+)
 
 app.use(compression())
 

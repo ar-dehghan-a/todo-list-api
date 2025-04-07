@@ -44,7 +44,6 @@ const sendErrorProd = (err, res) => {
   }
 }
 
-// eslint-disable-next-line no-unused-vars
 module.exports = (err, _req, res, _next) => {
   let error = err
 

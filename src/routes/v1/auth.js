@@ -6,8 +6,8 @@ const router = Router()
 router.post('/register', authController.register)
 router.post('/login', authController.login)
 
-router.patch('/updatePassword', authController.protect, authController.updatePassword)
-router.post('/forgotPassword', authController.forgotPassword)
-router.patch('/resetPassword/:token', authController.resetPassword)
+router.patch('/update-password', authController.protect, authController.updatePassword)
+router.post('/forgot-password', authController.forgotPassword)
+router.patch('/reset-password/:token', authController.resetPassword)
 
 module.exports = router

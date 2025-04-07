@@ -21,7 +21,7 @@ const RESET_TOKEN_EXPIRY = 10 * 60 * 1000
 
 // Helper functions
 const setJwtCookie = (res, token) => {
-  res.cookie('jwt', token, {
+  res.cookie('accessToken', token, {
     expires: new Date(Date.now() + TOKEN_EXPIRY),
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
@@ -81,7 +81,7 @@ const protect = catchAsync(async (req, res, next) => {
   let token = ''
   if (req.headers.authorization?.startsWith('Bearer'))
     token = req.headers.authorization.split(' ')[1]
-  else if (req.cookies.jwt) token = req.cookies.jwt
+  else if (req.cookies?.accessToken) token = req.cookies.accessToken
 
   if (!token) return next(new AppError('Unauthorized. Please login again.', 401))
 
@@ -111,7 +111,7 @@ const updatePassword = catchAsync(async (req, res, next) => {
   const {error, value} = validatePassword(req.body)
   if (error) return next(new AppError(error, 400))
 
-  const user = await User.findOne({where: {id: req.user.id}})
+  const user = await User.findByPk(req.user.id)
 
   const correct = compareHash(value.currentPassword, user.password)
   if (!correct) return next(new AppError('Your current password is incorrect', 401))
@@ -143,14 +143,15 @@ const forgotPassword = catchAsync(async (req, res, next) => {
 
   const resetToken = generateResetToken()
   const hashedToken = hashResetToken(resetToken)
-  const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/resetPassword/${resetToken}`
+  // const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/reset-password/${resetToken}`
+  const resetURL = `${process.env.BASE_CLIENT_URL}/auth/reset-password/${resetToken}`
 
   await user.update({
     passwordResetToken: hashedToken,
     passwordResetExpires: Date.now() + RESET_TOKEN_EXPIRY,
   })
 
-  const message = `Did you forget your password? Send the new password and confirmation of the new password with a patch request to this address:\n${resetURL}\nIf you have not forgotten your password, do not pay attention to this email.`
+  const message = `Did you forget your password? Click on the link below:\n${resetURL}\nIf you have not forgotten your password, do not pay attention to this email.`
 
   try {
     await sendEmail({
@@ -171,7 +172,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
       passwordResetExpires: null,
     })
 
-    return next(new AppError('There was a problem sending the email. Please try again later.', 500))
+    return next(new AppError('There was a problem sending the email. Please try again later.', 502))
   }
 })
 

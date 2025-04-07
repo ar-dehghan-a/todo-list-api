@@ -9,6 +9,6 @@ const router = Router()
 router.use('/files', files)
 router.use('/auth', auth)
 router.use('/todos', todos)
-router.use('/user', user)
+router.use('/users', user)
 
 module.exports = router

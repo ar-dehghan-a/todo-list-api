@@ -6,12 +6,12 @@ const router = Router()
 
 router.use(authController.protect)
 
+router.route('/').get(authController.restrictTo('admin'), userController.getUsers)
+
 router
-  .route('/')
-  .get(authController.restrictTo('admin'), userController.getUsers)
+  .route('/me')
+  .get(userController.getUser)
   .patch(userController.updateUser)
   .delete(userController.deleteUser)
-
-router.route('/me').get(userController.getUser)
 
 module.exports = router
