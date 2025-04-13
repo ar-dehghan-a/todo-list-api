@@ -1,9 +1,8 @@
-const fs = require('fs')
 const multer = require('multer')
-const sharp = require('sharp')
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const {File, serializer} = require('../models/File')
+const {uploadFileStorage} = require('../services/storage')
 
 // const multerStorage = multer.diskStorage({
 //   destination: (req, file, cb) => {
@@ -45,30 +44,22 @@ const uploadFile = upload.single('file')
 const processImage = catchAsync(async (req, res, next) => {
   if (!req.file) return next(new AppError('No file uploaded', 400))
 
-  const {originalname, mimetype, size, buffer, fieldname} = req.file
+  const {originalname, mimetype, buffer, fieldname} = req.file
 
   const filename = `${fieldname}-${Date.now()}`
   const ext = mimetype.startsWith('image/') ? 'jpeg' : mimetype.split('/')[1]
-  const uploadDir = 'public/uploads'
-  const filePath = `${uploadDir}/${filename}.${ext}`
-  const fileUrl = `/uploads/${filename}.${ext}`
+  const filePath = `uploads/${filename}.${ext}`
 
-  if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, {recursive: true})
-
-  if (mimetype.startsWith('image/'))
-    await sharp(buffer).toFormat('jpeg').jpeg({quality: 90}).toFile(filePath)
-  else await fs.promises.writeFile(filePath, buffer)
+  const {path, url, size} = await uploadFileStorage(buffer, filePath, mimetype)
 
   const file = await File.create({
     filename: originalname,
     mimeType: mimetype,
     size,
-    url: fileUrl,
-    path: filePath,
+    url: url,
+    path: path,
     isPublic: true,
   })
-
-  file.url = `${req.protocol}://${req.get('host')}${file.url}`
 
   res.status(201).json({
     status: 'success',

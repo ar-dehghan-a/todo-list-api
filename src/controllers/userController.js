@@ -37,7 +37,7 @@ const updateUser = catchAsync(async (req, res, next) => {
     if (!file.mimeType.startsWith('image/'))
       return next(new AppError('File must be an image.', 400))
 
-    value.photo = `${req.protocol}://${req.get('host')}${file.url}`
+    value.photo = file.url
   }
 
   await user.update(value)
