@@ -1,4 +1,4 @@
-const logger = require('../config/log')
+// const logger = require('../config/log')
 const AppError = require('../utils/appError')
 
 const handleValidationErrorDB = err => {
@@ -35,7 +35,7 @@ const sendErrorProd = (err, res) => {
       message: err.message,
     })
   } else {
-    logger.error('ERROR 💥', err)
+    console.error('ERROR 💥', err)
 
     res.status(500).json({
       status: 'error',

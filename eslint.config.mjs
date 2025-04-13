@@ -7,7 +7,7 @@ export default [
   pluginJs.configs.recommended,
   {
     rules: {
-      'no-console': ['warn', {allow: ['warn', 'error']}],
+      'no-console': ['warn', {allow: ['info', 'warn', 'error']}],
       'no-unused-vars': ['warn', {argsIgnorePattern: '^_'}],
     },
   },

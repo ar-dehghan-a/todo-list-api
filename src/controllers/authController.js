@@ -1,7 +1,6 @@
 const {Op} = require('sequelize')
 const crypto = require('crypto')
 const {signToken, verifyToken} = require('../utils/token')
-const logger = require('../config/log')
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
 const {generateHash, compareHash} = require('../utils/hash')
@@ -49,8 +48,6 @@ const register = catchAsync(async (req, res, next) => {
   const token = signToken(newUser.id)
 
   setJwtCookie(res, token)
-
-  logger.info(`New user registered: ${newUser.email}`)
 
   res.status(201).json({
     status: 'success',
@@ -165,7 +162,7 @@ const forgotPassword = catchAsync(async (req, res, next) => {
       message: 'If the email exists, a reset token has been sent.',
     })
   } catch (err) {
-    logger.error(`Failed to send password reset email: ${err.message}`)
+    console.error(`Failed to send password reset email: ${err.message}`)
 
     await user.update({
       passwordResetToken: null,
