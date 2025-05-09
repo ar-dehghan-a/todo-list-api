@@ -7,22 +7,27 @@ const title = Joi.string().trim().min(2).max(150).messages({
   'any.required': 'Title is required',
 })
 
-const note = Joi.string().trim().max(500).allow(null).default(null).empty('').messages({
+const note = Joi.string().trim().max(500).allow(null).empty('').messages({
   'string.empty': 'Note cannot be empty',
   'string.max': 'Note cannot exceed 500 characters',
+})
+
+const dueDate = Joi.date().allow(null).empty('').messages({
+  'date.base': 'Due date must be a valid date',
 })
 
 const validateCreateTodo = body =>
   Joi.object({
     title: title.required(),
-    note: note,
     isImportant: Joi.boolean(),
+    dueDate: dueDate,
   }).validate(body, {abortEarly: false})
 
 const validateUpdateTodo = body =>
   Joi.object({
     title: title,
     note: note,
+    dueDate: dueDate,
   })
     .min(1)
     .messages({

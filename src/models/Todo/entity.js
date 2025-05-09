@@ -29,6 +29,21 @@ const Todo = sequelize.define('Todo', {
     type: DataTypes.BOOLEAN,
     defaultValue: false,
   },
+  dueDate: {
+    type: DataTypes.DATE,
+    allowNull: true,
+    validate: {
+      isDate: {msg: 'dueDate must be a valid date.'},
+    },
+  },
+  dayBeforeNotificationSent: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
+  dueDateNotificationSent: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
   doneAt: {
     type: DataTypes.DATE,
     allowNull: true,

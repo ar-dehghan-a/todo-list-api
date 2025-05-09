@@ -81,6 +81,10 @@ const User = sequelize.define('User', {
     },
     comment: "User's role in the system",
   },
+  pushSubscription: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
   passwordChangedAt: DataTypes.DATE,
   passwordResetToken: DataTypes.STRING,
   passwordResetExpires: DataTypes.DATE,

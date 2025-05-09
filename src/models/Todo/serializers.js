@@ -5,6 +5,7 @@ const serializer = todo => ({
   isCompleted: todo.isCompleted,
   isImportant: todo.isImportant,
   doneAt: todo.doneAt,
+  dueDate: todo.dueDate,
   createdAt: todo.createdAt,
 })
 
