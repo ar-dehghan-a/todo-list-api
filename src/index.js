@@ -7,6 +7,11 @@ const rateLimit = require('express-rate-limit')
 const compression = require('compression')
 
 const mainRouter = require('./routes')
+const {setupNotificationScheduler} = require('./services/schedulerService')
+const {
+  checkDayBeforeDueDates,
+  checkDueDateNotifications,
+} = require('./services/notificationService')
 
 const AppError = require('./utils/appError')
 const errorController = require('./controllers/errorController')
@@ -19,7 +24,7 @@ app.use(helmet())
 // Limit requests from same API
 const limiter = rateLimit({
   max: 200,
-  windowMs: 15 * 60 * 1000,
+  windowMs: 10 * 60 * 1000,
   message: 'Too many requests from this IP, please try again after 15 minutes.',
 })
 app.use(limiter)
@@ -45,6 +50,11 @@ app.use(
 app.use(compression())
 
 app.use('/api', mainRouter)
+
+// Set up scheduler
+setupNotificationScheduler()
+checkDayBeforeDueDates()
+checkDueDateNotifications()
 
 app.all('*', (req, _res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404))

@@ -81,7 +81,15 @@ const updateTodo = catchAsync(async (req, res, next) => {
 
   if (!todo) return next(new AppError('Todo not found.', 404))
 
-  await todo.update(value)
+  let dayBeforeNotificationSent = todo.dayBeforeNotificationSent
+  let dueDateNotificationSent = todo.dueDateNotificationSent
+
+  if (value.dueDate !== undefined && value.dueDate !== todo.dueDate) {
+    dayBeforeNotificationSent = false
+    dueDateNotificationSent = false
+  }
+
+  await todo.update({...value, dayBeforeNotificationSent, dueDateNotificationSent})
 
   res.status(200).json({
     status: 'success',

@@ -1,14 +1,16 @@
 const {Router} = require('express')
 const auth = require('./auth')
+const users = require('./users')
 const todos = require('./todos')
-const user = require('./user')
+const subscription = require('./subscription')
 const files = require('./files')
 
 const router = Router()
 
-router.use('/files', files)
 router.use('/auth', auth)
+router.use('/users', users)
 router.use('/todos', todos)
-router.use('/users', user)
+router.use('/subscription', subscription)
+router.use('/files', files)
 
 module.exports = router
