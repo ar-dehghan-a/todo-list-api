@@ -9,7 +9,16 @@ const sequelize = new Sequelize(databaseUrl, {
   dialect: dbType,
   logging: false,
   dialectOptions: {
-    connectTimeout: 10000,
+    ssl: {
+      require: true,
+      rejectUnauthorized: false,
+    },
+  },
+  pool: {
+    max: 5,
+    min: 0,
+    idle: 10000,
+    acquire: 60000,
   },
 })
 

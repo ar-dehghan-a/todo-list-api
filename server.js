@@ -2,6 +2,11 @@ require('dotenv').config()
 
 const app = require('./src')
 const sequelize = require('./src/config/db')
+const {setupNotificationScheduler} = require('./src/services/schedulerService')
+const {
+  checkDayBeforeDueDates,
+  checkDueDateNotifications,
+} = require('./src/services/notificationService')
 // const logger = require('./src/config/log')
 
 process.on('uncaughtException', err => {
@@ -13,7 +18,19 @@ process.on('uncaughtException', err => {
 const port = process.env.PORT || 3000
 sequelize
   .sync()
-  .then(() => app.listen(port, () => console.info(`Server is running at http://localhost:${port}`)))
+  .then(() =>
+    app.listen(port, () => {
+      console.info(`Server is running at http://localhost:${port}`)
+
+      // Set up scheduler
+      setupNotificationScheduler()
+      checkDayBeforeDueDates()
+      checkDueDateNotifications()
+    })
+  )
+  .catch(err => {
+    console.error('❌ Unable to connect:', err)
+  })
 
 process.on('unhandledRejection', err => {
   console.error(err.name, err.message)
