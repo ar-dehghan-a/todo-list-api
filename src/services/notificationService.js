@@ -58,7 +58,7 @@ async function checkDayBeforeDueDates() {
         {
           model: User,
           as: 'userDetails',
-          attributes: ['id'],
+          attributes: ['id', 'pushSubscription'],
         },
       ],
     })
@@ -66,6 +66,8 @@ async function checkDayBeforeDueDates() {
     console.info(`Found ${todosWithDueTomorrow.length} todos due tomorrow`)
 
     for (const todo of todosWithDueTomorrow) {
+      if (!todo.userDetails?.pushSubscription) continue
+
       const success = await sendPushNotification(todo.userId, {
         title: 'Task Due Tomorrow',
         body: `"${todo.title}" is due tomorrow`,
@@ -76,9 +78,7 @@ async function checkDayBeforeDueDates() {
         },
       })
 
-      if (success) {
-        await todo.update({dayBeforeNotificationSent: true})
-      }
+      if (success) await todo.update({dayBeforeNotificationSent: true})
     }
   } catch (error) {
     console.error('Error checking day before due dates:', error)
@@ -106,7 +106,7 @@ async function checkDueDateNotifications() {
         {
           model: User,
           as: 'userDetails',
-          attributes: ['id'],
+          attributes: ['id', 'pushSubscription'],
         },
       ],
     })
@@ -114,6 +114,8 @@ async function checkDueDateNotifications() {
     console.info(`Found ${todosDueToday.length} todos due today`)
 
     for (const todo of todosDueToday) {
+      if (!todo.userDetails?.pushSubscription) continue
+
       const success = await sendPushNotification(todo.userId, {
         title: 'Task Due Today',
         body: `"${todo.title}" is due today`,
@@ -124,9 +126,7 @@ async function checkDueDateNotifications() {
         },
       })
 
-      if (success) {
-        await todo.update({dueDateNotificationSent: true})
-      }
+      if (success) await todo.update({dueDateNotificationSent: true})
     }
   } catch (error) {
     console.error('Error checking due date notifications:', error)

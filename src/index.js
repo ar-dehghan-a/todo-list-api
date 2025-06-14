@@ -18,6 +18,9 @@ const errorController = require('./controllers/errorController')
 
 const app = express()
 
+// Enable proxy support - required for running behind load balancers/proxies
+app.set('trust proxy', 1)
+
 // Set security HTTP headers
 app.use(helmet())
 

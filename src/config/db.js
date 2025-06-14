@@ -1,11 +1,16 @@
 const {Sequelize} = require('sequelize')
 
-// const dev = process.env['NODE_ENV'] === 'development'
 const dbType = 'postgres'
+const databaseUrl = process.env.DATABASE_URL
 
-const sequelize = new Sequelize(process.env.DATABASE_URL, {
+if (!databaseUrl) throw new Error('DATABASE_URL is not defined in the environment variables.')
+
+const sequelize = new Sequelize(databaseUrl, {
   dialect: dbType,
   logging: false,
+  dialectOptions: {
+    connectTimeout: 10000,
+  },
 })
 
 module.exports = sequelize
