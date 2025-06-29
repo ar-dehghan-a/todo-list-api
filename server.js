@@ -3,10 +3,6 @@ require('dotenv').config()
 const app = require('./src')
 const sequelize = require('./src/config/db')
 const {setupNotificationScheduler} = require('./src/services/schedulerService')
-const {
-  checkDayBeforeDueDates,
-  checkDueDateNotifications,
-} = require('./src/services/notificationService')
 // const logger = require('./src/config/log')
 
 process.on('uncaughtException', err => {
@@ -22,10 +18,8 @@ sequelize
     app.listen(port, () => {
       console.info(`Server is running at http://localhost:${port}`)
 
-      // Set up scheduler
+      // // Set up scheduler
       setupNotificationScheduler()
-      checkDayBeforeDueDates()
-      checkDueDateNotifications()
     })
   )
   .catch(err => {

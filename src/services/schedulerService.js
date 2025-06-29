@@ -6,11 +6,13 @@ function setupNotificationScheduler() {
   schedule.scheduleJob('0 * * * *', async function () {
     await checkDayBeforeDueDates()
   })
+  checkDayBeforeDueDates()
 
   // Run every hour to check for todos due today
   schedule.scheduleJob('0 * * * *', async function () {
     await checkDueDateNotifications()
   })
+  checkDueDateNotifications()
 
   console.info('Notification scheduler set up - running hourly')
 }
