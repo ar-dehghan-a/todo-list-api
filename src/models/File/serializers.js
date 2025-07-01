@@ -1,7 +1,7 @@
 const serializer = file => ({
   id: file.id,
   filename: file.filename,
-  mimeType: file.mimeType,
+  type: file.type,
   url: file.url,
 })
 

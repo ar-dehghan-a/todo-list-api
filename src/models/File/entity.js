@@ -12,7 +12,7 @@ const File = sequelize.define('File', {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  mimeType: {
+  type: {
     type: DataTypes.STRING,
     allowNull: false,
   },
@@ -26,7 +26,7 @@ const File = sequelize.define('File', {
   },
   path: {
     type: DataTypes.STRING,
-    allowNull: false,
+    allowNull: true,
   },
   isPublic: {
     type: DataTypes.BOOLEAN,

@@ -34,8 +34,7 @@ const updateUser = catchAsync(async (req, res, next) => {
     const file = await File.findByPk(value.photo)
     if (!file) return next(new AppError('File not found.', 404))
 
-    if (!file.mimeType.startsWith('image/'))
-      return next(new AppError('File must be an image.', 400))
+    if (!file.type.startsWith('image/')) return next(new AppError('File must be an image.', 400))
 
     value.photo = file.url
   }
