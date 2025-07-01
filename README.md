@@ -81,6 +81,12 @@ BASE_CLIENT_URL=your_client_rul
 # Database
 DATABASE_URL=your_database_url
 
+# Storage
+LIARA_ENDPOINT=your_liara_endpoint
+LIARA_BUCKET_NAME=your_bucket_name
+LIARA_ACCESS_KEY=your_liara_access_key
+LIARA_SECRET_KEY=secret
+
 # JWT Configuration
 JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=90d
@@ -134,8 +140,7 @@ todo-list-api/
 │   ├── models/         # Database models
 │   ├── routes/         # API routes
 │   ├── services/       # Business logic
-│   ├── utils/          # Utility functions
-│   └── migrations/     # Database migrations
+│   └── utils/          # Utility functions
 ├── public/             # Static files
 ├── server.js          # Application entry point
 └── package.json       # Project dependencies
