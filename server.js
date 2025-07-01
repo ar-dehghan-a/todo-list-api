@@ -16,7 +16,7 @@ sequelize
   .sync()
   .then(() =>
     app.listen(port, () => {
-      console.info(`Server is running at http://localhost:${port}`)
+      console.info(`Server is running at ${process.env.BASE_URL}`)
 
       // // Set up scheduler
       setupNotificationScheduler()

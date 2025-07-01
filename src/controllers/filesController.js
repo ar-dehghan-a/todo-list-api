@@ -1,4 +1,4 @@
-const AWS = require('aws-sdk')
+const {S3} = require('@aws-sdk/client-s3')
 const multer = require('multer')
 const multerS3 = require('multer-s3')
 const AppError = require('../utils/appError')
@@ -15,7 +15,7 @@ const config = {
   region: 'default',
 }
 
-const s3 = new AWS.S3(config)
+const s3 = new S3(config)
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
