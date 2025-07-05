@@ -1,5 +1,7 @@
-const {S3} = require('@aws-sdk/client-s3')
+const fs = require('fs')
+const path = require('path')
 const multer = require('multer')
+const {S3} = require('@aws-sdk/client-s3')
 const multerS3 = require('multer-s3')
 const AppError = require('../utils/appError')
 const catchAsync = require('../utils/catchAsync')
@@ -10,6 +12,8 @@ const {NODE_ENV, BASE_URL, LIARA_ENDPOINT, LIARA_BUCKET_NAME, LIARA_ACCESS_KEY, 
 
 const multerStorage = multer.diskStorage({
   destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../../public/uploads')
+    if (!fs.existsSync(uploadPath)) fs.mkdirSync(uploadPath, {recursive: true})
     cb(null, 'public/uploads')
   },
   filename: (req, file, cb) => {
@@ -60,9 +64,7 @@ const multerFilter = (req, file, cb) => {
 const upload = multer({
   storage: useS3 ? uploadS3 : multerStorage,
   fileFilter: multerFilter,
-  limits: {
-    fileSize: 1024 * 1024 * 5,
-  },
+  limits: {fileSize: 1024 * 1024 * 5},
 })
 
 const uploadFile = upload.single('file')

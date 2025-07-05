@@ -1,5 +1,6 @@
 require('dotenv').config()
 
+const http = require('http')
 const app = require('./src')
 const sequelize = require('./src/config/db')
 const {setupNotificationScheduler} = require('./src/services/schedulerService')
@@ -11,14 +12,18 @@ process.on('uncaughtException', err => {
   process.exit(1)
 })
 
-const port = process.env.PORT || 3000
+const PORT = process.env.PORT || 3000
+const HOST = '0.0.0.0'
+
+const server = http.createServer(app)
+
 sequelize
   .sync()
   .then(() =>
-    app.listen(port, () => {
-      console.info(`Server is running at ${process.env.BASE_URL}`)
+    server.listen(PORT, HOST, () => {
+      console.info(`Server is running at ${HOST}:${PORT}`)
 
-      // // Set up scheduler
+      // Set up scheduler
       setupNotificationScheduler()
     })
   )
