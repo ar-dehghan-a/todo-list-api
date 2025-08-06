@@ -16,4 +16,6 @@ router
 router.patch('/:id/completed', todoController.toggleTodoCompleted)
 router.patch('/:id/important', todoController.toggleTodoImportant)
 
+router.patch('/reorder', todoController.reorderTodos)
+
 module.exports = router

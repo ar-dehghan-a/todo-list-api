@@ -34,7 +34,8 @@ const getTodos = catchAsync(async (req, res) => {
     0: ['doneAt', 'ASC'],
     1: ['doneAt', 'DESC'],
     2: ['createdAt', 'ASC'],
-  }[sortBy] || ['createdAt', 'DESC']
+    3: ['createdAt', 'DESC'],
+  }[sortBy] || ['order', 'DESC']
 
   const todos = await Todo.findAndCountAll({
     where,
@@ -142,6 +143,58 @@ const toggleTodoImportant = catchAsync(async (req, res, next) => {
   })
 })
 
+const reorderTodos = catchAsync(async (req, res, next) => {
+  const {todos} = req.body
+
+  if (!todos || !Array.isArray(todos) || todos.length === 0) {
+    return next(new AppError('todos array is required and must not be empty.', 400))
+  }
+
+  // Validate that all todos have id and order
+  for (const item of todos) {
+    if (!item.id || typeof item.order !== 'number') {
+      return next(new AppError('Each todo must have an id and a numeric order.', 400))
+    }
+  }
+
+  // Fetch all todos by id and user
+  const todoIds = todos.map(t => t.id)
+  const foundTodos = await Todo.findAll({
+    where: {
+      id: todoIds,
+      userId: req.user.id,
+    },
+  })
+
+  if (foundTodos.length !== todos.length) {
+    return next(new AppError('Some todos not found or do not belong to you.', 404))
+  }
+
+  // Update each todo's order
+  for (const item of todos) {
+    await Todo.update(
+      {order: item.order},
+      {
+        where: {
+          id: item.id,
+          userId: req.user.id,
+        },
+      }
+    )
+  }
+
+  // Fetch and return the all todos, sorted by order
+  const updatedTodos = await Todo.findAll({
+    where: {userId: req.user.id},
+    order: [['order', 'ASC']],
+  })
+
+  res.status(200).json({
+    status: 'success',
+    data: updatedTodos.map(serializer),
+  })
+})
+
 module.exports = {
   getTodo,
   getTodos,
@@ -150,4 +203,5 @@ module.exports = {
   deleteTodo,
   toggleTodoCompleted,
   toggleTodoImportant,
+  reorderTodos,
 }
